@@ -13,19 +13,19 @@ public class BlueprintSlot {
     public static final BlueprintSlot EMPTY = new BlueprintSlot();
 
     private final BlueprintMetadata metadata;
-    private final boolean enoughResources;
     private final List<Text> tooltipText;
     private final IStructureBlockData blockData;
+    private boolean enoughResources = false;
 
     private BlueprintSlot() {
         metadata = null;
-        enoughResources = true;
-        tooltipText = List.of(Text.literal(""));
         blockData = null;
+        tooltipText = List.of(Text.literal(""));
     }
 
-    public BlueprintSlot(BlueprintMetadata metadata, boolean enoughResources, IStructureBlockData blockData) {
+    public BlueprintSlot(BlueprintMetadata metadata, IStructureBlockData blockData) {
         this.metadata = metadata;
+        this.blockData = blockData;
 
         this.tooltipText = new ArrayList<>();
 
@@ -55,10 +55,6 @@ public class BlueprintSlot {
                     .formatted(Formatting.GRAY);
             tooltipText.add(villagersText);
         }
-
-
-        this.enoughResources = enoughResources;
-        this.blockData = blockData;
     }
 
     public List<Text> getTooltipText() {
@@ -106,12 +102,16 @@ public class BlueprintSlot {
                 .formatted(Formatting.GRAY);
         tooltip.add(hireSpeedText);
 
-        if (!enoughResources) {
+        if (!isEnoughResources()) {
             final var notEnoughResourcesText = Text.literal("Not enough resources").formatted(Formatting.RED);
             tooltip.add(notEnoughResourcesText);
         }
 
         return tooltip;
+    }
+
+    public void setEnoughResources(boolean enoughResources) {
+        this.enoughResources = enoughResources;
     }
 
     public boolean isEnoughResources() {

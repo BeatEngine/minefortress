@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.remmintan.mods.minefortress.blocks.FortressBlocks;
+import net.remmintan.mods.minefortress.core.dtos.ItemInfoKt;
 import net.remmintan.mods.minefortress.core.dtos.buildings.BlueprintMetadata;
 import net.remmintan.mods.minefortress.core.interfaces.blueprints.*;
 import net.remmintan.mods.minefortress.core.utils.BuildingHelper;
@@ -82,7 +83,7 @@ public abstract class BaseClientStructureManager implements IStructureRenderInfo
             final var fortressClientManager = ClientModUtils.getFortressManager();
             final var resourceManager = fortressClientManager.getResourceManager();
             final var stacks = getBlockData().getStacks();
-            enoughResources = resourceManager.hasItems(stacks);
+            enoughResources = resourceManager.hasItems(stacks.stream().map(ItemInfoKt::toItemInfo).toList());
         } else {
             enoughResources = true;
         }

@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction
+import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.entity.effect.StatusEffectCategory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -19,6 +20,7 @@ import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerF
 import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerResourceManager
 import net.remmintan.mods.minefortress.core.interfaces.server.IWritableManager
 import net.remmintan.mods.minefortress.core.utils.LogCompanion
+import kotlin.math.abs
 
 private const val CONTAINER_POSITIONS_NBT_KEY = "containerPositions"
 
@@ -49,7 +51,19 @@ class ServerResourceManager(private val server: MinecraftServer) :
 
 
     override fun register(pos: BlockPos) {
-        containerPositions.add(pos.toImmutable())
+        // checking that other chest placed exactly next to this chest is already registered
+        val alreadyRegisterOtherPartOfThisChest = containerPositions
+            .filter {
+                val yDelta = abs(it.y - pos.y)
+                val xDelta = abs(it.x - pos.x)
+                val zDelta = abs(it.z - pos.z)
+                yDelta == 0 && (xDelta == 0 && zDelta == 1 || xDelta == 1 && zDelta == 0)
+            }.any {
+                val type = world.getBlockEntity(it)?.type
+                type == BlockEntityType.CHEST || type == BlockEntityType.TRAPPED_CHEST
+            }
+        if (!alreadyRegisterOtherPartOfThisChest)
+            containerPositions.add(pos.toImmutable())
     }
 
     override fun unregister(pos: BlockPos) {
@@ -107,7 +121,9 @@ class ServerResourceManager(private val server: MinecraftServer) :
         if (tag.contains(CONTAINER_POSITIONS_NBT_KEY)) {
             val positions = tag.getLongArray(CONTAINER_POSITIONS_NBT_KEY).map { BlockPos.fromLong(it) }
             containerPositions.clear()
-            containerPositions.addAll(positions)
+            positions.forEach {
+                register(pos = it)
+            }
         }
     }
 

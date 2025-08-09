@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
 import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerResourceHelper
 import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerResourceManager
 import net.remmintan.mods.minefortress.core.utils.LogCompanion
@@ -85,8 +86,13 @@ class ServerResourceHelper(server: MinecraftServer, fortressPos: BlockPos) : ISe
             return
         }
 
+        val variant = ItemVariant.of(item)
+        if (variant.isBlank) {
+            log.warn("Trying to pay for task $taskPos with item $item but it is blank!")
+            return
+        }
+
         Transaction.openOuter().use { tr ->
-            val variant = ItemVariant.of(item)
             val extractedAmount = taskStorage.extractItemsConsideringSimilar(variant, 1, tr)
             if (extractedAmount == 1L) {
                 tr.commit()
@@ -97,11 +103,11 @@ class ServerResourceHelper(server: MinecraftServer, fortressPos: BlockPos) : ISe
         }
     }
 
-    override fun payItems(from: Storage<ItemVariant>, items: List<ItemStack>): Boolean {
+    override fun payItems(from: Storage<ItemVariant>, itemInfos: List<ItemInfo>): Boolean {
         Transaction.openOuter().use { tr ->
-            for (stack in items) {
-                val item = ItemVariant.of(stack)
-                val amountToExtract = stack.count.toLong()
+            for (itemInfo in itemInfos) {
+                val item = itemInfo.item
+                val amountToExtract = itemInfo.amount
                 val extractedAmount = from.extractItemsConsideringSimilar(item, amountToExtract, tr)
                 if (amountToExtract != extractedAmount)
                     return false
@@ -123,10 +129,10 @@ class ServerResourceHelper(server: MinecraftServer, fortressPos: BlockPos) : ISe
         return totalCount
     }
 
-    override fun syncRequestedItems(items: Set<Item>, player: ServerPlayerEntity) {
+    override fun syncRequestedItems(items: Set<ItemVariant>, player: ServerPlayerEntity) {
         val requestedStates = items.map {
-            val count = getCountIncludingSimilar(it)
-            ItemStack(it, count.toInt())
+            val count = getCountIncludingSimilar(it.item)
+            ItemInfo(it, count)
         }
         val packet = S2CSyncItemsState(requestedStates)
         FortressServerNetworkHelper.send(player, S2CSyncItemsState.CHANNEL, packet)

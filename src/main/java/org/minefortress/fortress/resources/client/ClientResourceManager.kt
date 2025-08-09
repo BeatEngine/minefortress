@@ -1,25 +1,26 @@
 package org.minefortress.fortress.resources.client
 
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.remmintan.mods.minefortress.core.dtos.EnoughResourceState
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
 import net.remmintan.mods.minefortress.core.interfaces.resources.IClientResourceManager
 import net.remmintan.mods.minefortress.networking.c2s.C2SRequestItemsState
 import net.remmintan.mods.minefortress.networking.helpers.FortressClientNetworkHelper
 import java.time.Duration
 import java.time.Instant
 
+@Suppress("UnstableApiUsage")
 class ClientResourceManager : IClientResourceManager {
 
-    private val items = mutableMapOf<Item, ItemStateInfo>()
+    private val items = mutableMapOf<ItemVariant, ItemStateInfo>()
 
-    private val pendingRequests = mutableSetOf<Item>()
+    private val pendingRequests = mutableSetOf<ItemVariant>()
 
-    override fun hasItems(stacks: List<ItemStack>): Boolean {
+    override fun hasItems(stacks: List<ItemInfo>): Boolean {
         val result = stacks.map { st ->
             when (val storageStack = getStorageStack(st)) {
                 is ItemStateInfo.RequestedItemState -> EnoughResourceState.PENDING
-                is ItemStateInfo.FilledItemState -> if (storageStack.amount >= st.count) EnoughResourceState.ENOUGH else EnoughResourceState.NOT_ENOUGH
+                is ItemStateInfo.FilledItemState -> if (storageStack.amount >= st.amount) EnoughResourceState.ENOUGH else EnoughResourceState.NOT_ENOUGH
             }
         }.all { it == EnoughResourceState.ENOUGH }
 
@@ -28,13 +29,13 @@ class ClientResourceManager : IClientResourceManager {
         return result
     }
 
-    override fun syncRequestedItems(stacks: List<ItemStack>) {
+    override fun syncRequestedItems(stacks: List<ItemInfo>) {
         stacks.forEach {
-            items[it.item] = ItemStateInfo.FilledItemState(it.count)
+            items[it.item] = ItemStateInfo.FilledItemState(it.amount)
         }
     }
 
-    private fun getStorageStack(requestedStack: ItemStack): ItemStateInfo {
+    private fun getStorageStack(requestedStack: ItemInfo): ItemStateInfo {
         val item = requestedStack.item
         val now = Instant.now()
         val itemStateInfo = items.computeIfAbsent(item) { scheduleRequest(requestedStack) }
@@ -54,7 +55,7 @@ class ClientResourceManager : IClientResourceManager {
         return itemStateInfo
     }
 
-    private fun scheduleRequest(stack: ItemStack): ItemStateInfo.RequestedItemState {
+    private fun scheduleRequest(stack: ItemInfo): ItemStateInfo.RequestedItemState {
         pendingRequests.add(stack.item)
         return ItemStateInfo.RequestedItemState()
     }
@@ -69,7 +70,7 @@ class ClientResourceManager : IClientResourceManager {
 
 
 private sealed interface ItemStateInfo {
-    data class FilledItemState(val amount: Int, private val cachedAt: Instant = Instant.now()) :
+    data class FilledItemState(val amount: Long, private val cachedAt: Instant = Instant.now()) :
         ItemStateInfo {
 
         fun shouldRefresh(currentTime: Instant): Boolean {

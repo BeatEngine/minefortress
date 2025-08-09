@@ -1,9 +1,7 @@
 package org.minefortress.blueprints.data;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.remmintan.mods.minefortress.core.interfaces.blueprints.BlueprintDataLayer;
@@ -85,16 +83,6 @@ public final class StructureBlockData implements IStructureBlockData {
                     .toList();
 
             return instance;
-        }
-
-
-        private int getItemAmount(Map.Entry<Item, Long> entry) {
-            final var defaultStack = entry.getKey().getDefaultStack();
-            final var count = entry.getValue().intValue();
-
-            final var shouldBeDivided = defaultStack.isIn(ItemTags.BEDS) || defaultStack.isIn(ItemTags.DOORS);
-
-            return shouldBeDivided ? count / 2 : count;
         }
     }
 

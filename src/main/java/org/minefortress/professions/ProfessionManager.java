@@ -11,6 +11,7 @@ import net.remmintan.mods.minefortress.core.interfaces.professions.IProfessionsM
 import net.remmintan.mods.minefortress.core.interfaces.professions.ProfessionResearchState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
+import org.minefortress.entity.Colonist;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -83,6 +84,9 @@ public abstract class ProfessionManager implements IProfessionsManager {
 
     @Override
     public IProfession getProfession(String id) {
+        if (Colonist.RESERVE_PROFESSION_ID.equals(id)) {
+            id = Colonist.DEFAULT_PROFESSION_ID;
+        }
         return getProfessions().get(id);
     }
 

@@ -8,6 +8,7 @@ import net.minecraft.server.world.ServerWorld
 import net.remmintan.gobi.helpers.TreeData
 import net.remmintan.gobi.helpers.TreeFinder
 import net.remmintan.gobi.helpers.TreeRemover
+import net.remmintan.mods.minefortress.core.dtos.toItemInfo
 import net.remmintan.mods.minefortress.core.interfaces.automation.area.AutomationActionType
 import net.remmintan.mods.minefortress.core.interfaces.automation.area.IAutomationBlockInfo
 import net.remmintan.mods.minefortress.core.interfaces.blueprints.ProfessionType
@@ -105,7 +106,7 @@ class LumberjackDailyTask : AbstractAutomationAreaTask() {
             val resourceManager = managersProvider.resourceManager
             val resourceHelper = managersProvider.resourceHelper
 
-            if (resourceHelper.payItems(resourceManager.getStorage(), listOf(Items.OAK_SAPLING.defaultStack)))
+            if (resourceHelper.payItems(resourceManager.getStorage(), listOf(Items.OAK_SAPLING.toItemInfo())))
                 return Items.OAK_SAPLING
             else
                 return null

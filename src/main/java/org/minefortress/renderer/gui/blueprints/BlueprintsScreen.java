@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.remmintan.mods.minefortress.core.FortressGamemodeUtilsKt;
+import net.remmintan.mods.minefortress.core.dtos.ItemInfoKt;
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot;
 import net.remmintan.mods.minefortress.core.dtos.buildings.BlueprintMetadata;
 import net.remmintan.mods.minefortress.core.interfaces.blueprints.BlueprintGroup;
@@ -29,6 +30,7 @@ import org.minefortress.utils.ModUtils;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class BlueprintsScreen extends Screen {
 
     private static final Identifier SCROLLER_TEXTURE = new Identifier("container/creative_inventory/scroller");
@@ -182,6 +184,12 @@ public final class BlueprintsScreen extends Screen {
         return true;
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        this.handler.tick();
+    }
+
     public void updateSlots() {
         this.handler.scroll(scrollPosition);
     }
@@ -226,16 +234,16 @@ public final class BlueprintsScreen extends Screen {
             final var resourceManager = fortressClientManager.getResourceHelper();
             if (blueprintSlot != BlueprintSlot.EMPTY) {
                 if (ClientExtensionsKt.isSurvivalFortress(MinecraftClient.getInstance())) {
-                    final var stacks = blueprintSlot.getBlockData().getStacks();
+                    final var stacks = blueprintSlot.getBlockData().getStacks().stream().map(ItemInfoKt::toItemInfo).toList();
                     final var metRequirements = resourceManager.getMetRequirements(stacks);
                     for (int i1 = 0; i1 < stacks.size(); i1++) {
                         final var stack = stacks.get(i1);
                         final var hasItem = metRequirements.getOrDefault(stack, false);
                         final var itemX = x + 25 + i1 % 10 * 30;
                         final var itemY = i1 / 10 * 20 + this.backgroundHeight;
-                        final var convertedItem = SimilarItemsHelper.convertItemIconInTheGUI(stack.getItem());
+                        final var convertedItem = SimilarItemsHelper.convertItemIconInTheGUI(stack.getItem().getItem());
                         drawContext.drawItem(new ItemStack(convertedItem), itemX, itemY);
-                        drawContext.drawText(this.textRenderer, String.valueOf(stack.getCount()), itemX + 17, itemY + 7, hasItem ? 0xFFFFFF : 0xFF0000, false);
+                        drawContext.drawText(this.textRenderer, String.valueOf(stack.getAmount()), itemX + 17, itemY + 7, hasItem ? 0xFFFFFF : 0xFF0000, false);
                     }
                 }
 

@@ -1,22 +1,24 @@
 package net.remmintan.mods.minefortress.networking.s2c
 
 import net.minecraft.client.MinecraftClient
-import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
+import net.remmintan.mods.minefortress.core.dtos.readItemInfo
+import net.remmintan.mods.minefortress.core.dtos.writeItemInfo
 import net.remmintan.mods.minefortress.core.interfaces.networking.FortressS2CPacket
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 
-class S2CSyncItemsState(private val stacks: List<ItemStack>) : FortressS2CPacket {
+class S2CSyncItemsState(private val infos: List<ItemInfo>) : FortressS2CPacket {
 
-    constructor(buf: PacketByteBuf) : this(buf.readCollection({ mutableListOf<ItemStack>() }) { it.readItemStack() })
+    constructor(buf: PacketByteBuf) : this(buf.readCollection({ mutableListOf<ItemInfo>() }) { it.readItemInfo() })
 
     override fun write(buf: PacketByteBuf) {
-        buf.writeCollection(stacks) { b, st -> b.writeItemStack(st) }
+        buf.writeCollection(infos) { b, i -> b.writeItemInfo(i) }
     }
 
     override fun handle(client: MinecraftClient?) {
         val resourceManager = ClientModUtils.getFortressManager().resourceManager
-        resourceManager.syncRequestedItems(stacks)
+        resourceManager.syncRequestedItems(infos)
     }
 
     companion object {

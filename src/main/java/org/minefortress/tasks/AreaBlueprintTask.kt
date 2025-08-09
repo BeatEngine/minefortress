@@ -110,13 +110,13 @@ class AreaBlueprintTask(
         val entityLayer = blueprintData.getLayer(BlueprintDataLayer.ENTITY)
         val automaticLayer = blueprintData.getLayer(BlueprintDataLayer.AUTOMATIC)
 
-        (entityLayer + automaticLayer)
-            .forEach { (p, s) ->
-                val realPos = p.add(startPos)
-                world.setBlockState(realPos, s)
-                if (!s.isIn(BlockTags.BEDS) || s.get(BedBlock.PART) != BedPart.FOOT)
-                    removeReservedItem(worker, s.block.asItem())
-            }
+        for ((p, s) in entityLayer + automaticLayer) {
+            if (s.isAir) continue
+            val realPos = p.add(startPos)
+            world.setBlockState(realPos, s)
+            if (s.isIn(BlockTags.BEDS) && s.get(BedBlock.PART) == BedPart.FOOT) continue
+            removeReservedItem(worker, s.block.asItem())
+        }
 
         val pos = worker.fortressPos ?: error("No fortress pos")
         val server = (worker as IFortressAwareEntity).server
@@ -127,7 +127,7 @@ class AreaBlueprintTask(
             ?.addBuilding(metadata, startPos, endPos, (entityLayer + automaticLayer + manualLayer))
 
         server.getFortressOwner(pos)?.let {
-            val packet = ClientboundTaskExecutedPacket(pos)
+            val packet = ClientboundTaskExecutedPacket(this.pos)
             FortressServerNetworkHelper.send(it, FortressChannelNames.FINISH_TASK, packet)
         }
     }

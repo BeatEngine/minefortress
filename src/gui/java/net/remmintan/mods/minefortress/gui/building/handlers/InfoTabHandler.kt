@@ -4,8 +4,10 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockRotation
 import net.minecraft.util.math.BlockBox
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot
 import net.remmintan.mods.minefortress.core.dtos.buildings.BlueprintMetadata
+import net.remmintan.mods.minefortress.core.dtos.toItemInfo
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 import net.remmintan.mods.minefortress.networking.c2s.C2SDestroyBuilding
 import net.remmintan.mods.minefortress.networking.c2s.C2SRepairBuilding
@@ -23,28 +25,37 @@ class InfoTabHandler(provider: IBuildingProvider) : IInfoTabHandler {
 
     override val upgrades: List<BlueprintSlot> by lazy {
         val blueprintManager = ClientModUtils.getBlueprintManager()
-        val resourceManager = ClientModUtils.getFortressManager().resourceManager
+
         building.upgrades
             .map { blueprintManager.blueprintMetadataManager.getByBlueprintId(it) }
             .filter { it.isPresent }
             .map { it.get() }
             .map { metadata ->
                 val blockData = blueprintManager.blockDataProvider.getBlockData(metadata.id, BlockRotation.NONE)
-                val theNextLevel = metadata.requirement.level == building.metadata.requirement.level + 1
-                val enoughResources = resourceManager.hasItems(blockData.stacks)
-                BlueprintSlot(metadata, theNextLevel && enoughResources, blockData)
+
+                BlueprintSlot(metadata, blockData)
             }
     }
 
+    override fun tickInfoTab() {
+        val resourceManager = ClientModUtils.getFortressManager().resourceManager
+        upgrades.forEach {
+            it.apply {
+                val theNextLevel = metadata.requirement.level == building.metadata.requirement.level + 1
+                val enoughResources = resourceManager.hasItems(blockData.stacks.map { it.toItemInfo() })
+                this.isEnoughResources = theNextLevel && enoughResources
+            }
+        }
+    }
 
     override fun getBlueprintMetadata(): BlueprintMetadata = building.metadata
     override fun getHealth() = building.health
     override fun getItemsToRepair(): List<ItemStack> = building.repairItemInfos
 
-    override fun getEnoughItems(): Map<ItemStack, Boolean> {
+    override fun getEnoughItems(): Map<ItemInfo, Boolean> {
         val itemsToRepair = getItemsToRepair().sortedBy { it.item.toString() }
         val resourceHelper = ClientModUtils.getFortressManager().resourceHelper
-        return resourceHelper.getMetRequirements(itemsToRepair)
+        return resourceHelper.getMetRequirements(itemsToRepair.map { it.toItemInfo() })
     }
 
     override fun upgrade(slot: BlueprintSlot) {

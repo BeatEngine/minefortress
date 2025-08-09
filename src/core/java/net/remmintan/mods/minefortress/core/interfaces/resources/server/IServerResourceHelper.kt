@@ -6,6 +6,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
 import net.remmintan.mods.minefortress.core.interfaces.server.IServerManager
 
 @Suppress("UnstableApiUsage")
@@ -20,9 +21,9 @@ interface IServerResourceHelper : IServerManager {
     fun transferItemsFromTask(resourceManager: IServerResourceManager, taskPos: BlockPos): Boolean
 
     fun payItemFromTask(taskPos: BlockPos, item: Item, canIgnore: Boolean)
-    fun payItems(from: Storage<ItemVariant>, items: List<ItemStack>): Boolean
+    fun payItems(from: Storage<ItemVariant>, items: List<ItemInfo>): Boolean
 
     fun getCountIncludingSimilar(item: Item): Long
-    fun syncRequestedItems(items: Set<Item>, player: ServerPlayerEntity)
+    fun syncRequestedItems(items: Set<ItemVariant>, player: ServerPlayerEntity)
 
 }

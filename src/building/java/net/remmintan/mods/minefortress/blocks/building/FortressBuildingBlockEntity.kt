@@ -50,6 +50,7 @@ import kotlin.streams.asSequence
 private const val MAX_BLOCKS_PER_UPDATE = 10
 private val LOGGER: Logger = LoggerFactory.getLogger(FortressBuildingBlockEntity::class.java)
 
+@Suppress("UnstableApiUsage")
 class FortressBuildingBlockEntity(pos: BlockPos?, state: BlockState?) :
     BlockEntity(FortressBlocks.BUILDING_ENT_TYPE, pos, state),
     NamedScreenHandlerFactory,
@@ -220,9 +221,9 @@ class FortressBuildingBlockEntity(pos: BlockPos?, state: BlockState?) :
                     it.icon,
                     it.itemsRequirement.map { r ->
                         ProfessionCost(
-                            r.item,
-                            r.count,
-                            resourceHelper.getCountIncludingSimilar(item = r.item)
+                            r.item.item,
+                            r.amount,
+                            resourceHelper.getCountIncludingSimilar(item = r.item.item)
                         )
                     }
                 )

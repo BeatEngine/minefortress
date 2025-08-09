@@ -9,6 +9,7 @@ import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.item.ItemStack
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot
+import net.remmintan.mods.minefortress.core.dtos.toItemInfo
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 import net.remmintan.mods.minefortress.core.utils.SimilarItemsHelper
 import net.remmintan.mods.minefortress.core.utils.isSurvivalFortress
@@ -18,6 +19,7 @@ private const val SLOT_BACKGROUND_COLOR = (0xFF shl 24) or 0x8B8B8B
 private const val SLOT_HIGHLIGHT_COLOR = (0x80 shl 24) or 0xFFFFFF
 private const val UPGRADE_SLOT_SIDE_SIZE = 44
 
+@Suppress("UnstableApiUsage")
 class BlueprintUpgradeSlot(
     val slot: BlueprintSlot,
     private val slotX: Int,
@@ -64,18 +66,18 @@ class BlueprintUpgradeSlot(
 
             if (MinecraftClient.getInstance().isSurvivalFortress() && showItems) {
                 val resourceManager = ClientModUtils.getFortressManager().resourceHelper
-                val stacks: List<ItemStack> = slot.blockData.getStacks()
+                val stacks = slot.blockData.getStacks().map { it.toItemInfo() }
                 val metRequirements = resourceManager.getMetRequirements(stacks)
                 for (i1 in stacks.indices) {
                     val stack = stacks[i1]
                     val hasItem = metRequirements.getOrDefault(stack, false)
                     val itemX = costsX + i1 % 10 * 30
                     val itemY = costsY + i1 / 10 * 20
-                    val convertedItem = SimilarItemsHelper.convertItemIconInTheGUI(stack.item)
+                    val convertedItem = SimilarItemsHelper.convertItemIconInTheGUI(stack.item.item)
                     context.drawItem(ItemStack(convertedItem), itemX, itemY)
                     context.drawText(
                         this.textRenderer,
-                        stack.count.toString(),
+                        stack.amount.toString(),
                         itemX + 18,
                         itemY + 4,
                         if (hasItem) 0xFFFFFF else 0xFF0000,

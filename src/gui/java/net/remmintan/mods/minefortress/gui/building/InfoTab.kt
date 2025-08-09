@@ -10,6 +10,7 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot
+import net.remmintan.mods.minefortress.core.dtos.toItemInfo
 import net.remmintan.mods.minefortress.gui.building.BuildingScreen.Companion.HEADINGS_COLOR
 import net.remmintan.mods.minefortress.gui.building.BuildingScreen.Companion.PRIMARY_COLOR
 import net.remmintan.mods.minefortress.gui.building.BuildingScreen.Companion.SECONDARY_COLOR
@@ -19,6 +20,7 @@ import net.remmintan.mods.minefortress.gui.building.handlers.InfoTabState
 import net.remmintan.mods.minefortress.gui.widget.BlueprintUpgradeSlot
 import net.remmintan.mods.minefortress.gui.widget.hud.ItemButtonWidget
 
+@Suppress("UnstableApiUsage")
 internal class InfoTab(private val handler: IInfoTabHandler, private val textRenderer: TextRenderer) :
     ResizableTab {
 
@@ -67,6 +69,7 @@ internal class InfoTab(private val handler: IInfoTabHandler, private val textRen
     private var hoveredUpgrade: BlueprintSlot? = null
 
     fun tick() {
+        handler.tickInfoTab()
         destroyButton.active = handler.canDestroy()
         repairButton.active = handler.getHealth() < 100
     }
@@ -238,9 +241,9 @@ internal class InfoTab(private val handler: IInfoTabHandler, private val textRen
         val enoughItems = handler.getEnoughItems()
         var itemX = x + 10
         var itemY = y + 50
-        handler.getItemsToRepair().forEach {
-            context.drawItem(it.item.defaultStack, itemX, itemY)
-            val text = "x${it.count}"
+        handler.getItemsToRepair().map { it.toItemInfo() }.forEach {
+            context.drawItem(it.item.toStack(), itemX, itemY)
+            val text = "x${it.amount}"
             val color = if (enoughItems.getValue(it)) 0xFFFFFF else 0xb81d13
             context.drawText(textRenderer, text, itemX + 16 + 2, itemY + 6, color, false)
 

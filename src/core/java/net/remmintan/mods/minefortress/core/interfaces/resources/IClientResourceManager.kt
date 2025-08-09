@@ -1,11 +1,11 @@
 package net.remmintan.mods.minefortress.core.interfaces.resources
 
-import net.minecraft.item.ItemStack
+import net.remmintan.mods.minefortress.core.dtos.ItemInfo
 
 
 interface IClientResourceManager {
 
-    fun hasItems(stacks: List<ItemStack>): Boolean
-    fun syncRequestedItems(stacks: List<ItemStack>)
+    fun hasItems(stacks: List<ItemInfo>): Boolean
+    fun syncRequestedItems(stacks: List<ItemInfo>)
 
 }

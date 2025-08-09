@@ -3,11 +3,11 @@ package org.minefortress.renderer.gui.blueprints.handler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.BlockRotation;
+import net.remmintan.mods.minefortress.core.dtos.ItemInfoKt;
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot;
 import net.remmintan.mods.minefortress.core.dtos.buildings.BlueprintMetadata;
 import net.remmintan.mods.minefortress.core.interfaces.blueprints.BlueprintGroup;
 import net.remmintan.mods.minefortress.core.interfaces.client.IClientManagersProvider;
-import net.remmintan.mods.minefortress.core.utils.ClientExtensionsKt;
 import net.remmintan.mods.minefortress.networking.c2s.ServerboundEditBlueprintPacket;
 import net.remmintan.mods.minefortress.networking.helpers.FortressChannelNames;
 import net.remmintan.mods.minefortress.networking.helpers.FortressClientNetworkHelper;
@@ -50,10 +50,18 @@ public final class BlueprintScreenHandler {
         return selectedGroup;
     }
 
-    public void scroll(float scrollPosition) {
-        final var blueprintManager = managersProvider.get_BlueprintManager();
+    public void tick() {
         final var fortressClientManager = managersProvider.get_ClientFortressManager();
         final var resourceManager = fortressClientManager.getResourceManager();
+        this.currentSlots.forEach(it -> {
+            final var stacks = it.getBlockData().getStacks();
+            final var hasEnoughItems = resourceManager.hasItems(stacks.stream().map(ItemInfoKt::toItemInfo).toList());
+            it.setEnoughResources(hasEnoughItems);
+        });
+    }
+
+    public void scroll(float scrollPosition) {
+        final var blueprintManager = managersProvider.get_BlueprintManager();
         final List<BlueprintMetadata> allBlueprint = blueprintManager.getAllBlueprints(selectedGroup);
         this.totalSize = allBlueprint.size();
         this.currentSlots = new ArrayList<>();
@@ -69,13 +77,7 @@ public final class BlueprintScreenHandler {
                 if (m >= 0 && m < this.totalSize) {
                     final BlueprintMetadata blueprintMetadata = allBlueprint.get(m);
                     final var blockData = blueprintManager.getBlockDataProvider().getBlockData(blueprintMetadata.getId(), BlockRotation.NONE);
-                    if (ClientExtensionsKt.isSurvivalFortress(MinecraftClient.getInstance())) {
-                        final var stacks = blockData.getStacks();
-                        final var hasEnoughItems = resourceManager.hasItems(stacks);
-                        this.currentSlots.add(new BlueprintSlot(blueprintMetadata, hasEnoughItems, blockData));
-                    } else {
-                        this.currentSlots.add(new BlueprintSlot(blueprintMetadata, true, blockData));
-                    }
+                    this.currentSlots.add(new BlueprintSlot(blueprintMetadata, blockData));
                 }
             }
         }
