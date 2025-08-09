@@ -3,7 +3,6 @@ package org.minefortress.renderer.gui.blueprints.handler
 import net.minecraft.util.BlockRotation
 import net.remmintan.mods.minefortress.core.dtos.blueprints.BlueprintSlot
 import net.remmintan.mods.minefortress.core.dtos.buildings.BlueprintMetadata
-import net.remmintan.mods.minefortress.core.dtos.toItemInfo
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 import java.util.function.Consumer
 
@@ -11,12 +10,10 @@ class EditUpgradesScreenHandler(ids: List<String>, val edit: Consumer<BlueprintM
 
     val upgrades: List<BlueprintSlot> = ids.map {
         val blueprintManager = ClientModUtils.getBlueprintManager()
-        val resourceManager = ClientModUtils.getFortressManager().resourceManager
 
         val blueprint = blueprintManager.blueprintMetadataManager.getByBlueprintId(it).orElseThrow()
         val blockData = blueprintManager.blockDataProvider.getBlockData(it, BlockRotation.NONE)
-        val enoughResources = resourceManager.hasItems(blockData.stacks.map { it.toItemInfo() })
-        BlueprintSlot(blueprint, enoughResources, blockData)
+        BlueprintSlot(blueprint, blockData)
     }
 
 }

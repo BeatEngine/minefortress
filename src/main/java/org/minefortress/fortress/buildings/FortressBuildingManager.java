@@ -4,6 +4,7 @@ package org.minefortress.fortress.buildings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBlockTags;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@SuppressWarnings("UnstableApiUsage")
 public class FortressBuildingManager implements IAutomationAreaProvider, IServerBuildingsManager {
 
     private int buildingPointer = 0;
@@ -57,7 +59,12 @@ public class FortressBuildingManager implements IAutomationAreaProvider, IServer
     }
 
     public void addBuilding(BlueprintMetadata metadata, BlockPos start, BlockPos end, Map<BlockPos, BlockState> blockData) {
-        final var blockBox = BlockBox.create(start, end);
+        final var validPositions = blockData.entrySet().stream()
+                .filter(it -> !ItemVariant.of(it.getValue().getBlock().asItem()).isBlank())
+                .map(it -> it.getKey().toImmutable().add(start))
+                .toList();
+
+        final var blockBox = BlockBox.encompassPositions(validPositions).orElse(BlockBox.create(start, end));
         final var buildingPos = getCenterTop(blockBox);
 
         final var world = getWorld();

@@ -97,7 +97,8 @@ class ServerTaskManager(private val server: MinecraftServer, fortressPos: BlockP
         val finishedTasks = tasksInProgress.filterValues { it.isComplete() }.keys
         finishedTasks.forEach {
             tasksInProgress.remove(it)
-            world.removeBlock(it, false)
+            if (world.getBlockEntity(it) is FortressTaskBlockEntity)
+                world.removeBlock(it, false)
         }
     }
 
