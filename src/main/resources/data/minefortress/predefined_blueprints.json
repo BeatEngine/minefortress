@@ -239,6 +239,12 @@
       "file": "meeting_point_5",
       "floorLevel": 1,
       "capacity": 0
+    },
+    {
+      "name": "Small Defense Tower",
+      "file": "small_defense_tower",
+      "floorLevel": 1,
+      "capacity": 4
     }
   ]
 }
