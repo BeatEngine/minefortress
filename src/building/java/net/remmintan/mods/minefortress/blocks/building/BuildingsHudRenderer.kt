@@ -43,7 +43,11 @@ object BuildingsHudRenderer {
                     bars.forEach { (index, progress, color) ->
                         barRenderer.renderBarWithProgress(index, color, progress)
                     }
+                    try {
                     context.drawItem(ItemStack(icon), -8, -20)
+                    } catch (e: Throwable) {
+
+                    }
                     matrices.pop()
                 }
             }
