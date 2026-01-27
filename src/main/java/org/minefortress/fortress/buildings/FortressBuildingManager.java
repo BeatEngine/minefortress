@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBlockTags;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
@@ -28,6 +29,8 @@ import net.remmintan.mods.minefortress.networking.helpers.FortressServerNetworkH
 import net.remmintan.mods.minefortress.networking.s2c.ClientboundSyncBuildingsPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.minefortress.entity.ArcherPawn;
+import org.minefortress.entity.Colonist;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +75,41 @@ public class FortressBuildingManager implements IAutomationAreaProvider, IServer
         final var blockEntity = world.getBlockEntity(buildingPos);
         if (blockEntity instanceof FortressBuildingBlockEntity b) {
             b.init(fortressPos, metadata, start, end, blockData);
+        }
+
+        if(metadata.getName().equals("Small Defense Tower"))
+        {
+            int c = 0;
+            // Wir suchen nach der Klasse deiner Kolonisten (wahrscheinlich Colonist.class)
+           for(Entity e: world.iterateEntities())
+           {
+               if(c > 3)
+               {
+                   break;
+               }
+               if(e instanceof ArcherPawn)
+               {
+                   ArcherPawn a = (ArcherPawn)e;
+                   if(c == 0)
+                   {
+                       a.setMoveTarget(buildingPos.add(2,8,2));
+                   }else if(c == 1)
+                   {
+                       a.setMoveTarget(buildingPos.add(-2,8,2));
+                   }
+                   else if(c == 2)
+                   {
+                       a.setMoveTarget(buildingPos.add(-2,8,-2));
+                   }
+                   else if(c == 3)
+                   {
+                       a.setMoveTarget(buildingPos.add(-2,8,-2));
+                   }
+
+               }
+               c++;
+           }
+
         }
 
         final var managersProvider = ServerModUtils.getManagersProvider(world.getServer(), fortressPos).get();

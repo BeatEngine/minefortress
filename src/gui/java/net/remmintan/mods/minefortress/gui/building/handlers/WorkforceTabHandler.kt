@@ -6,6 +6,7 @@ import net.remmintan.mods.minefortress.core.dtos.professions.ProfessionHireInfo
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 import net.remmintan.mods.minefortress.networking.c2s.C2SHireProfessional
 import net.remmintan.mods.minefortress.networking.helpers.FortressClientNetworkHelper
+import org.slf4j.LoggerFactory
 
 class WorkforceTabHandler(private val provider: IBuildingProvider) : IWorkforceTabHandler {
 
@@ -57,11 +58,12 @@ class WorkforceTabHandler(private val provider: IBuildingProvider) : IWorkforceT
         // All professions now use the hire menu approach
         val pos = provider.building.pos
         val packet = C2SHireProfessional(pos, professionId)
+        LoggerFactory.getLogger(this.javaClass).info("Send hiring package for " + professionId + " at " + pos.toString());
         FortressClientNetworkHelper.send(C2SHireProfessional.CHANNEL, packet)
     }
 
     override fun canHireMore(professionId: String): Boolean {
-        return handler.getHireProgress(professionId).canHireMore
+        return true;//handler.getHireProgress(professionId).canHireMore
     }
 
     override fun getAvailablePawns(): Int {

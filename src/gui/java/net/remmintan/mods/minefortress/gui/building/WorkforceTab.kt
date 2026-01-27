@@ -10,6 +10,7 @@ import net.minecraft.text.Text
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils
 import net.remmintan.mods.minefortress.gui.building.handlers.IWorkforceTabHandler
 import net.remmintan.mods.minefortress.gui.widget.professions.*
+import org.slf4j.LoggerFactory
 import kotlin.properties.Delegates
 
 class WorkforceTab(private val handler: IWorkforceTabHandler, private val textRenderer: TextRenderer) : ResizableTab {
@@ -31,7 +32,8 @@ class WorkforceTab(private val handler: IWorkforceTabHandler, private val textRe
             initialized = true
         }
         for ((profId, button) in hireButtons) {
-            val canHireMore = handler.canHireMore(profId) && handler.getAvailablePawns() > 0
+            val canHireMore = /*handler.canHireMore(profId) && */handler.getAvailablePawns() > 0
+
             button.active = canHireMore
             button.tooltip = if (canHireMore) null else {
                 if (handler.getAvailablePawns() <= 0) {
@@ -106,6 +108,7 @@ class WorkforceTab(private val handler: IWorkforceTabHandler, private val textRe
         ) { _: ButtonWidget? ->
             if (handler.canHireMore(profId)) {
                 ClientModUtils.playSound(SoundEvents.ENTITY_VILLAGER_YES)
+                LoggerFactory.getLogger(this.javaClass).info("Try hiring " + profId);
                 handler.increaseAmount(profId)
             }
         }

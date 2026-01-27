@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.remmintan.mods.minefortress.core.interfaces.buildings.IFortressBuilding
 import net.remmintan.mods.minefortress.core.interfaces.networking.FortressC2SPacket
+import org.slf4j.LoggerFactory
 
 class C2SHireProfessional(private val pos: BlockPos, private val professionId: String) : FortressC2SPacket {
 
@@ -21,6 +22,7 @@ class C2SHireProfessional(private val pos: BlockPos, private val professionId: S
     }
 
     override fun handle(server: MinecraftServer, player: ServerPlayerEntity) {
+        LoggerFactory.getLogger(this.javaClass).info("hiring server handler: " + professionId)
         (player.world?.getBlockEntity(pos) as? IFortressBuilding)?.hireHandler?.hire(professionId)
     }
 }

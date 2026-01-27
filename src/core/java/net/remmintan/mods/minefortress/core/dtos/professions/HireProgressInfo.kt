@@ -8,7 +8,7 @@ data class HireProgressInfo(
     val currentCount: Int,
     val maxCount: Int,
     val progress: Int,
-    val canHireMore: Boolean
+    val canHireMore: Boolean = true
 ) {
     fun toNbt(): NbtCompound {
         val nbt = NbtCompound()

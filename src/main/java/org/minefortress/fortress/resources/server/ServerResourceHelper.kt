@@ -108,7 +108,9 @@ class ServerResourceHelper(server: MinecraftServer, fortressPos: BlockPos) : ISe
             for (itemInfo in itemInfos) {
                 val item = itemInfo.item
                 val amountToExtract = itemInfo.amount
+                SimilarItemsHelper.ignoreAllItems = true
                 val extractedAmount = from.extractItemsConsideringSimilar(item, amountToExtract, tr)
+                SimilarItemsHelper.ignoreAllItems = false
                 if (amountToExtract != extractedAmount)
                     return false
             }

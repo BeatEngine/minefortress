@@ -9,6 +9,7 @@ import net.remmintan.mods.minefortress.core.interfaces.professions.IServerProfes
 import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerResourceHelper
 import net.remmintan.mods.minefortress.core.interfaces.resources.server.IServerResourceManager
 import net.remmintan.mods.minefortress.core.utils.LogCompanion
+import org.slf4j.LoggerFactory
 import java.util.*
 
 class BuildingHireHandler : IBuildingHireHandler {
@@ -53,8 +54,9 @@ class BuildingHireHandler : IBuildingHireHandler {
     }
 
     override fun hire(professionId: String) {
+        LoggerFactory.getLogger(this.javaClass).info("hire: " + professionId)
         val hireProgress = computeHireProgress(professionId)
-        if (!hireProgress.canHireMore) return
+        //if (!hireProgress.canHireMore) return
         val rHelper = resourceHelper
         val rManager = resourceManger
         val pManager = professionManager

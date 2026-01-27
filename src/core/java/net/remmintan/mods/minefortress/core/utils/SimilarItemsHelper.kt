@@ -33,6 +33,8 @@ object SimilarItemsHelper {
         ItemTags.WOOL
     )
 
+    public var ignoreAllItems: Boolean = false;
+
     private val strippedLogs: List<Item> = Arrays.asList(
         Items.STRIPPED_ACACIA_LOG,
         Items.STRIPPED_BIRCH_LOG,
@@ -154,8 +156,15 @@ object SimilarItemsHelper {
             Items.STRIPPED_OAK_LOG,
             Items.STRIPPED_SPRUCE_LOG,
             Items.STRIPPED_WARPED_STEM,
-            Items.STRIPPED_CRIMSON_STEM
-        )
+            Items.STRIPPED_CRIMSON_STEM,
+            Items.BOW,
+            Items.ARROW,
+            Items.WOODEN_SWORD,
+            Items.WOODEN_AXE,
+            Items.WOODEN_HOE,
+            Items.WOODEN_PICKAXE,
+            Items.WOODEN_SHOVEL
+            )
         items.addAll(getItems(ItemTags.FLOWERS))
         items.addAll(getItems(ItemTags.BANNERS))
         items.addAll(getItems(ItemTags.BEDS))
@@ -165,7 +174,7 @@ object SimilarItemsHelper {
 
     @JvmStatic
     fun isIgnorable(it: Item): Boolean {
-        return IGNORED_ITEMS.contains(it)
+        return ignoreAllItems || IGNORED_ITEMS.contains(it)
     }
 
     @JvmStatic

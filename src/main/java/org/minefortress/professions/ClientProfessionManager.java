@@ -13,6 +13,7 @@ import net.remmintan.mods.minefortress.core.utils.ClientExtensionsKt;
 import net.remmintan.mods.minefortress.core.utils.ClientModUtils;
 import net.remmintan.mods.minefortress.networking.c2s.C2SOpenBuildingHireScreen;
 import net.remmintan.mods.minefortress.networking.helpers.FortressClientNetworkHelper;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,10 +44,12 @@ public final class ClientProfessionManager extends ProfessionManager implements 
     public void increaseAmount(String professionId) {
         if ("colonist".equals(professionId)) return;
         final var profession = this.getProfession(professionId);
-        
+        LoggerFactory.getLogger(this.getClass()).info("hiring client: " + professionId);
         // Check if profession is unlocked
         final var unlocked = super.isRequirementsFulfilled(profession, CountProfessionals.DONT_COUNT);
+        System.out.println("Hire Requirements: " + unlocked);
         if (unlocked == ProfessionResearchState.UNLOCKED) {
+
             openBuildingHireScreen(professionId);
         } else if (unlocked == ProfessionResearchState.LOCKED_PARENT) {
             final var parent = profession.getParent();

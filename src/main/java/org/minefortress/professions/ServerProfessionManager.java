@@ -53,16 +53,17 @@ public final class ServerProfessionManager extends ProfessionManager implements 
 
     @Override
     public void increaseAmount(String professionId) {
+        LoggerFactory.getLogger(this.getClass()).info("hiring server: " + professionId);
         final IProfession profession = super.getProfession(professionId);
         if(profession == null) return;
-
+        LoggerFactory.getLogger(this.getClass()).info("Hire " + profession.getTitle());
         if (getServerFortressManager().getReservedPawnsCount() <= 0) {
             LoggerFactory.getLogger(ServerProfessionManager.class).error("No reserved pawns but trying to hire a profession");
             return;
         }
 
-        if (super.isRequirementsFulfilled(profession, CountProfessionals.INCREASE) != ProfessionResearchState.UNLOCKED)
-            return;
+        /*if (super.isRequirementsFulfilled(profession, CountProfessionals.INCREASE) != ProfessionResearchState.UNLOCKED)
+            return;*/
 
         profession.setAmount(profession.getAmount() + 1);
         sync();
