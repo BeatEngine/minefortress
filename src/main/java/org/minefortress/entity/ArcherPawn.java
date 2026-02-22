@@ -5,6 +5,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.RangedAttackMob;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.HostileEntity;
@@ -17,6 +19,7 @@ import net.remmintan.mods.minefortress.core.interfaces.entities.pawns.IProfessio
 import net.remmintan.mods.minefortress.core.interfaces.entities.pawns.IWarrior;
 import org.minefortress.entity.ai.goal.SelectTargetToAttackGoal;
 import org.minefortress.entity.ai.goal.warrior.FollowLivingEntityGoal;
+import org.minefortress.entity.ai.goal.warrior.GuardBuildingGoal;
 import org.minefortress.entity.ai.goal.warrior.MoveToBlockGoal;
 import org.minefortress.entity.ai.goal.warrior.RangedAttackGoal;
 
@@ -29,9 +32,10 @@ public class ArcherPawn extends TargetedPawn implements IWarrior, RangedAttackMo
     @Override
     protected void initGoals() {
         super.initGoals();
+        this.goalSelector.add(2, new GuardBuildingGoal(this));
         this.goalSelector.add(1, new RangedAttackGoal(this));
-        this.goalSelector.add(2, new MoveToBlockGoal(this));
-        this.goalSelector.add(2, new FollowLivingEntityGoal(this));
+        this.goalSelector.add(3, new MoveToBlockGoal(this));
+        this.goalSelector.add(4, new FollowLivingEntityGoal(this));
         this.goalSelector.add(9, new LookAtEntityGoal(this, LivingEntity.class, 4f));
         this.goalSelector.add(10, new LookAroundGoal(this));
 

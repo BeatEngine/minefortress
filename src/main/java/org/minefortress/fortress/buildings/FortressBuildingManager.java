@@ -49,9 +49,12 @@ public class FortressBuildingManager implements IAutomationAreaProvider, IServer
                     .build();
     private boolean needSync = false;
 
+    public static FortressBuildingManager instance;
+
     public FortressBuildingManager(BlockPos fortressPos, ServerWorld world) {
         this.world = world;
         this.fortressPos = fortressPos;
+        instance = this;
     }
 
     private static @NotNull BlockPos getCenterTop(BlockBox blockBox) {
@@ -75,41 +78,6 @@ public class FortressBuildingManager implements IAutomationAreaProvider, IServer
         final var blockEntity = world.getBlockEntity(buildingPos);
         if (blockEntity instanceof FortressBuildingBlockEntity b) {
             b.init(fortressPos, metadata, start, end, blockData);
-        }
-
-        if(metadata.getName().equals("Small Defense Tower"))
-        {
-            int c = 0;
-            // Wir suchen nach der Klasse deiner Kolonisten (wahrscheinlich Colonist.class)
-           for(Entity e: world.iterateEntities())
-           {
-               if(c > 3)
-               {
-                   break;
-               }
-               if(e instanceof ArcherPawn)
-               {
-                   ArcherPawn a = (ArcherPawn)e;
-                   if(c == 0)
-                   {
-                       a.setMoveTarget(buildingPos.add(2,8,2));
-                   }else if(c == 1)
-                   {
-                       a.setMoveTarget(buildingPos.add(-2,8,2));
-                   }
-                   else if(c == 2)
-                   {
-                       a.setMoveTarget(buildingPos.add(-2,8,-2));
-                   }
-                   else if(c == 3)
-                   {
-                       a.setMoveTarget(buildingPos.add(-2,8,-2));
-                   }
-
-               }
-               c++;
-           }
-
         }
 
         final var managersProvider = ServerModUtils.getManagersProvider(world.getServer(), fortressPos).get();
@@ -235,6 +203,11 @@ public class FortressBuildingManager implements IAutomationAreaProvider, IServer
     public Optional<IFortressBuilding> getBuilding(BlockPos pos) {
         final var blockEntity = getWorld().getBlockEntity(pos);
         return blockEntity instanceof IFortressBuilding b ? Optional.of(b) : Optional.empty();
+    }
+
+    @NotNull
+    public List<IFortressBuilding> getAllBuildings() {
+        return getBuildingsStream().toList();
     }
 
     @NotNull
