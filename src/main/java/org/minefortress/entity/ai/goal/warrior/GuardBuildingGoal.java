@@ -21,6 +21,7 @@ import org.minefortress.fortress.buildings.ClientBuildingsManager;
 import org.minefortress.fortress.buildings.FortressBuildingManager;
 
 import java.io.Console;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -167,7 +168,7 @@ public class GuardBuildingGoal extends AttackGoal {
         // 3. Find all buildings and filter for defense towers
         // Note: Adjust "defense" or "small_defense_tower" based on your exact requirement
         Logger.getLogger(this.getClass().getSimpleName()).info(buildingManager.getAllBuildings().stream().map(x -> x.getMetadata().getId()).collect(Collectors.joining(", ")));
-        IFortressBuilding b = buildingManager.getAllBuildings()
+        List<IFortressBuilding> b = buildingManager.getAllBuildings()
                 .stream()
                 .filter(building -> "small_defense_tower".equals(building.getMetadata().getId()))
                 // 2. Only include towers with fewer than 4 archers inside
@@ -180,20 +181,27 @@ public class GuardBuildingGoal extends AttackGoal {
                     );
                     return archersInside.size() < 4;
                 })
-                .min((p1, p2) -> {
-                    double d1 = this.pawn.getBlockPos().getSquaredDistance(p1.getPos());
-                    double d2 = this.pawn.getBlockPos().getSquaredDistance(p2.getPos());
-                    return Double.compare(d1, d2);
-                })
-                .orElse(null);
-        if(b == null)
+                .sorted(Comparator.comparingDouble(building -> 
+            this.pawn.getBlockPos().getSquaredDistance(building.getStart()) // Use .getStart() or .getPos()
+        ))
+        .collect(Collectors.toList());
+        if(b.isEmpty())
         {
             //Logger.getLogger(this.getClass().getSimpleName()).info("no small_defense_tower found!");
             //Text.literal(pawn.getName().getString() + " no small_defense_tower found!");
             return null;
         }
-        Logger.getLogger(this.getClass().getSimpleName()).info("found at "+ b.getPos().toShortString());
-        return findPlankPlot(b, pawn.getWorld(), pawn, this);
+        
+        for (IFortressBuilding building : b) {
+            BlockPos pos = findPlankPlot(building, pawn.getWorld(), pawn, this);
+            if(pos != null)
+            {
+                Logger.getLogger(this.getClass().getSimpleName()).info("found at "+ building.getPos().toShortString());
+                return pos;
+            }
+        }
+        
+        return null;
     }
 
 
