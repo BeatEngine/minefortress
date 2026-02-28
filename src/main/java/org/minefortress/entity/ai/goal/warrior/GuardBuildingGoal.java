@@ -21,11 +21,8 @@ import org.minefortress.fortress.buildings.ClientBuildingsManager;
 import org.minefortress.fortress.buildings.FortressBuildingManager;
 
 import java.io.Console;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -35,7 +32,7 @@ public class GuardBuildingGoal extends AttackGoal {
     private int checkTicker = 0;
     private BlockPos targetTowerPos = null;
 
-    public static Set<Vec3d> occupied = new HashSet<>();
+    public static Map<Vec3d, LocalDateTime> occupied = new HashMap<Vec3d, LocalDateTime>();
 
     public GuardBuildingGoal(BasePawnEntity pawn) {
         super(pawn);
@@ -56,7 +53,7 @@ public class GuardBuildingGoal extends AttackGoal {
                 BlockPos standPos = pos.up();
 
                 // Optional: Ensure the space above is actually clear (air)
-                if (world.getBlockState(standPos).isAir() && !occupied.contains(standPos.toCenterPos())) {
+                if (world.getBlockState(standPos).isAir() && !occupied.containsKey(standPos.toCenterPos())) {
 
                     Box occupationBox = new Box(standPos).expand(0.2, 0.5, 0.2);
                     List<BasePawnEntity> others = world.getEntitiesByClass(
@@ -66,18 +63,39 @@ public class GuardBuildingGoal extends AttackGoal {
                     );
 
                     if (others.isEmpty()) {
-                        Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Free " + standPos.toShortString());
+                        Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Free1 " + standPos.toShortString());
                         return standPos; // Nobody is here, take the spot!
                     }
                     else
                     {
                         goal.targetTowerPos = null;
-                        Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Occupied by " + others.get(0).getName().getContent().toString());
+                        //Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Occupied1 by " + others.get(0).getName().getContent().toString());
                     }
                 }
-                else
+                else if(occupied.containsKey(standPos.toCenterPos()))
                 {
-                    Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Occupied by someone");
+                    if(LocalDateTime.now().minusSeconds(10).isAfter(occupied.get(standPos.toCenterPos()))) {
+                        // Check if really someone is at the place
+                        Box occupationBox = new Box(standPos).expand(1, 1, 1);
+                        List<BasePawnEntity> others = world.getEntitiesByClass(
+                                BasePawnEntity.class,
+                                occupationBox,
+                                entity -> entity != pawn
+                        );
+                        if (others.isEmpty()) {
+                            Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Free2 (overwrite occupation)" + standPos.toShortString());
+                            occupied.remove(standPos.toCenterPos());
+                            return standPos; // Nobody is here, take the spot!
+                        } else {
+                            goal.targetTowerPos = null;
+                            //Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Occupied2 by " + others.get(0).getName().getContent().toString());
+                        }
+                    }
+                    else
+                    {
+                        // If the target was set in the last 10 seconds
+                        //Logger.getLogger(GuardBuildingGoal.class.getSimpleName()).info("Occupied by someone last 10 seconds");
+                    }
                 }
             }
         }
@@ -89,19 +107,15 @@ public class GuardBuildingGoal extends AttackGoal {
         if (this.pawn.getTarget() != null) return false;
 
         if(this.targetTowerPos == null) {
-            Logger.getLogger(this.getClass().getSimpleName()).info("Looking for defense-tower!");
+            //Logger.getLogger(this.getClass().getSimpleName()).info("Looking for defense-tower!");
             this.targetTowerPos = findNearestDefenseTower();
             if (this.targetTowerPos != null) {
-                if(occupied.add(targetTowerPos.toCenterPos())) {
-                    this.pawn.getServer().getPlayerManager().broadcast(
-                            Text.literal(pawn.getName().getString() + " is going to defense tower! " + targetTowerPos.toShortString()),
-                            false
-                    );
-                }
-                else
-                {
-                    this.targetTowerPos = null;
-                }
+                occupied.put(targetTowerPos.toCenterPos(), LocalDateTime.now());
+                Logger.getLogger(this.getClass().getSimpleName()).info(pawn.getName().getString() + " is going to defense tower!");
+                this.pawn.getServer().getPlayerManager().broadcast(
+                        Text.literal(pawn.getName().getString() + " is going to defense tower! " + targetTowerPos.toShortString()),
+                        false
+                );
             }
         }
         return this.targetTowerPos != null;
@@ -164,23 +178,17 @@ public class GuardBuildingGoal extends AttackGoal {
 
     private BlockPos findNearestDefenseTower() {
         FortressBuildingManager buildingManager = FortressBuildingManager.instance;
-
+        if(buildingManager == null)
+        {
+            Logger.getLogger(this.getClass().getSimpleName()).warning("buildingManager not initialized");
+            return null;
+        }
         // 3. Find all buildings and filter for defense towers
         // Note: Adjust "defense" or "small_defense_tower" based on your exact requirement
         Logger.getLogger(this.getClass().getSimpleName()).info(buildingManager.getAllBuildings().stream().map(x -> x.getMetadata().getId()).collect(Collectors.joining(", ")));
         List<IFortressBuilding> b = buildingManager.getAllBuildings()
                 .stream()
                 .filter(building -> "small_defense_tower".equals(building.getMetadata().getId()))
-                // 2. Only include towers with fewer than 4 archers inside
-                .filter(building -> {
-                    Box buildingBox = new Box(building.getStart(), building.getEnd());
-                    List<BasePawnEntity> archersInside = pawn.getEntityWorld().getEntitiesByClass(
-                            BasePawnEntity.class,
-                            buildingBox,
-                            entity -> true
-                    );
-                    return archersInside.size() < 4;
-                })
                 .sorted(Comparator.comparingDouble(building -> 
             this.pawn.getBlockPos().getSquaredDistance(building.getStart()) // Use .getStart() or .getPos()
         ))
@@ -215,6 +223,7 @@ public class GuardBuildingGoal extends AttackGoal {
     public void stop() {
         super.stop();
         this.pawn.getNavigation().stop();
+        occupied.remove(targetTowerPos.toCenterPos());
     }
 }
 
