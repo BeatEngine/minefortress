@@ -74,7 +74,7 @@ public class GuardBuildingGoal extends AttackGoal {
                 }
                 else if(occupied.containsKey(standPos.toCenterPos()))
                 {
-                    if(LocalDateTime.now().minusSeconds(10).isAfter(occupied.get(standPos.toCenterPos()))) {
+                    if(LocalDateTime.now().minusSeconds(30).isAfter(occupied.get(standPos.toCenterPos()))) {
                         // Check if really someone is at the place
                         Box occupationBox = new Box(standPos).expand(1, 1, 1);
                         List<BasePawnEntity> others = world.getEntitiesByClass(
@@ -223,7 +223,7 @@ public class GuardBuildingGoal extends AttackGoal {
     public void stop() {
         super.stop();
         this.pawn.getNavigation().stop();
-        occupied.remove(targetTowerPos.toCenterPos());
+        //occupied.remove(targetTowerPos.toCenterPos());
     }
 }
 
